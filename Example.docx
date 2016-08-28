@@ -1,0 +1,616 @@
+Basic operation
+conf：显示所有的配置信息。conf变量保存了scapy的配置信息。
+>>> conf
+ASN1_default_codec = <ASN1Codec BER[1]>
+AS_resolver = <scapy.as_resolvers.AS_resolver_multi instance at 0xb5ee6b8c>
+BTsocket   = <BluetoothL2CAPSocket: read/write packets on a connected L2CAP ...
+L2listen   = <L2ListenSocket: read packets at layer 2 using Linux PF_PACKET ...
+L2socket   = <L2Socket: read/write packets at layer 2 using Linux PF_PACKET ...
+L3socket   = <L3PacketSocket: read/write packets at layer 3 using Linux PF_P...
+auto_fragment = 1
+checkIPID  = 0
+checkIPaddr = 1
+checkIPsrc = 1
+check_TCPerror_seqack = 0
+color_theme = <DefaultTheme>
+commands   = arpcachepoison : Poison target's cache with (your MAC,victim's ...
+debug_dissector = 0
+debug_match = 0
+default_l2 = <class 'scapy.packet.Raw'>
+emph       = <Emphasize []>
+ethertypes = </etc/ethertypes/ >
+except_filter = ''
+extensions_paths = '.'
+histfile   = '/home/veriwave/.scapy_history'
+iface      = 'eth0'
+iface6     = 'lo'
+interactive = True
+interactive_shell = ''
+ipv6_enabled = True
+l2types    = 0x1 <- Dot3 (802.3) 0x1 <-> Ether (Ethernet) 0xc -> IP (IP) 0x1...
+l3types    = 0x3 -> IP (IP) 0x800 <-> IP (IP) 0x806 <-> ARP (ARP) 0x86dd <->...
+layers     = Packet : None NoPayload : None Raw : Raw Padding : Padding ASN1...
+load_layers = ['l2', 'inet', 'dhcp', 'dns', 'dot11', 'gprs', 'hsrp', 'inet6'...
+logLevel   = 20
+manufdb    = </usr/share/wireshark/wireshark/manuf/ >
+mib        = <MIB/ >
+neighbor   = Ether -> Dot1Q Ether -> IP Dot3 -> LLC Dot3 -> SNAP Dot3 -> IP ...
+netcache   = arp_cache: 0 valid items. Timeout=120s in6_neighbor: 0 valid it...
+noenum     = <Resolve []>
+padding    = 1
+prog       = display = 'display' dot = 'dot' hexedit = 'hexer' pdfreader = '...
+promisc    = 1
+prompt     = '>>> '
+protocols  = </etc/protocols/ pim ip ax_25 esp tcp ah mpls_in_ip rohc ipv6_o...
+raw_layer  = <class 'scapy.packet.Raw'>
+raw_summary = False
+readfunc   = None
+resolve    = <Resolve []>
+route      = Network Netmask Gateway Iface Output IP 127.0.0.0 255.0.0.0 0.0...
+route6     = Destination Next Hop iface src candidates fe80::/64 :: eth0 fe8...
+services_tcp = </etc/services-tcp/ kpop zabbix_trapper noclog svn cmip_man b...
+services_udp = </etc/services-udp/ zabbix_trapper noclog cmip_man z3950 root...
+session    = ''
+sniff_promisc = 1
+stats_classic_protocols = [<class 'scapy.layers.inet.TCP'>, <class 'scapy.la...
+stats_dot11_protocols = [<class 'scapy.layers.inet.TCP'>, <class 'scapy.laye...
+stealth    = 'not implemented'
+temp_files = []
+teredoPrefix = '2001::'
+teredoServerPort = 3544
+use_dnet   = False
+use_pcap   = False
+verb       = 2
+version    = '2.2.0'
+warning_threshold = 5
+wepkey     = ''
+lsc()列出scapy支持的所有的命令。
+display()可以简单查看当前数据包的各个参数的取值情况。
+8、sprintf()输出某一层某个参数的取值，如果不存在就输出”??”，具体的format格式是:%[[fmt][r],][layer[:nb].]field%，详细的使用参考<Security Power Tools>的146页。
+%[[fmt][r],][layer[:nb].]field%
+layer:协议层的名字，如Ether、IP、Dot11、TCP等。
+filed:需要显示的参数。
+nb:当有两个协议层有相同的参数名时，nb用于到达你想要的协议层。
+
+r:是一个标志。当使用r标志时，意味着显示的是参数的原始值。例如，TCP标志中使用人类可阅读的字符串’SA’表示SYN和ACK标志，而其原始值是18.
+创建数据包
+scapy的数据包创建按照的是TCP/IP协议的四层参考模型：网络接口层、互联网层、传输层、应用层。Scapy为每一层都写了相应的类，创建数据包时我们只要将这些类实例化，然后调用类的方法或改变类的参数值即可。各个层的协议都有各自的创建函数，如IP()、TCP()、UDP()等，不同层之间通过”/”来连接。每个创建函数的参数可以使用ls(函数名)来查看,如ls(TCP)。
+
+1.	sendp(Dot11(addr1="ff:ff:ff:ff:ff:ff",addr2=RandMAC(),addr3=RandMAC())/  
+2.	          Dot11Beacon(cap="ESS")/  
+3.	          Dot11Elt(ID="SSID",info=RandString(RandNum(1,50)))/  
+4.	          Dot11Elt(ID="Rates",info='\x82\x84\x0b\x16')/  
+5.	          Dot11Elt(ID="DSset",info="\x03")/  
+6.	          Dot11Elt(ID="TIM",info="\x00\x01\x00\x00"),iface="wifi360",loop=1)
+
+How to create a new packet based on the captured packet
+
+>>> a[0].addr1="12:32:34:fa:f2:21"
+>>> a[0].show()
+###[ RadioTap dummy ]###
+  version= 0
+  pad= 0
+  len= 18
+  present= Flags+Rate+Channel+dBm_AntSignal+Antenna+b14
+  notdecoded= '\x10\x02\x85\t\xc0\x00\xdc\x02\x00\x00'
+###[ 802.11 ]###
+     subtype= 8L
+     type= Management
+     proto= 0L
+     FCfield= 
+     ID= 0
+     addr1= 12:32:34:fa:f2:21
+     addr2= 00:19:77:00:00:14
+     addr3= 00:19:77:00:00:14
+     SC= 10720
+     addr4= None
+###[ 802.11 Beacon ]###
+        timestamp= 2051449753989L
+        beacon_interval= 100
+        cap= res8+short-slot+res11+ESS+short-preamble
+###[ 802.11 Information Element ]###
+           ID= SSID
+           len= 7
+           info= 'testcai'
+###[ 802.11 Information Element ]###
+              ID= Rates
+              len= 8
+              info= '\x82\x84\x8b\x96$0Hl'
+###[ 802.11 Information Element ]###
+                 ID= DSset
+                 len= 1
+                 info= '\x06'
+###[ 802.11 Information Element ]###
+                    ID= TIM
+                    len= 4
+                    info= '\x00\x01\x00\x00'
+###[ 802.11 Information Element ]###
+                       ID= 7
+                       len= 6
+                       info= 'US \x01\x0b\x1e'
+###[ 802.11 Information Element ]###
+                          ID= 32
+                          len= 1
+                          info= '\x00'
+###[ 802.11 Information Element ]###
+                             ID= 35
+                             len= 2
+                             info= '\x14\x00'
+###[ 802.11 Information Element ]###
+                                ID= ERPinfo
+                                len= 1
+                                info= '\x00'
+###[ 802.11 Information Element ]###
+                                   ID= ESRates
+                                   len= 4
+                                   info= '\x0c\x12\x18`'
+###[ 802.11 Information Element ]###
+                                      ID= 11
+                                      len= 5
+                                      info= '\x00\x00\x06\x00\x00'
+###[ 802.11 Information Element ]###
+                                         ID= 45
+                                         len= 26
+                                         info= '\x8d\x19\x17\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+###[ 802.11 Information Element ]###
+                                            ID= 61
+                                            len= 22
+                                            info= '\x06\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+###[ 802.11 Information Element ]###
+                                               ID= 127
+                                               len= 8
+                                               info= '\x04\x00\x08\x00\x00\x00\x00@'
+###[ 802.11 Information Element ]###
+                                                  ID= vendor
+                                                  len= 9
+                                                  info= '\x00\x10\x18\x02\x00\x00\x1c\x00\x00'
+###[ 802.11 Information Element ]###
+                                                     ID= vendor
+                                                     len= 24
+                                                     info= "\x00P\xf2\x02\x01\x01\x84\x00\x03d\x00\x00'\xa4\x00\x00QC^\x00q2/\x00"
+###[ 802.11 Information Element ]###
+                                                        ID= 71
+                                                        len= 1
+                                                        info= '\x04'
+###[ 802.11 Information Element ]###
+                                                           ID= vendor
+                                                           len= 86
+                                                           info= '\x00\x19w\x01\x04\x04\x14\x14\x00\x00\x00\x12I\xef\xfc\x91\xb2\xf6\x11\xfd\xf1)\x00\x19w\x00\x00\x00\x06\x10\x00\x19w\x00\x00\x14\x18\x00\x00\x00\x00\x00\x9d\x845\x00\xdd%\xc9\xb9\x00\x00\x00\x00\x04\x03\x00\x00\xa6\x00\x00\x00\x00\x00\x00\x00n 9N5\x00\x005\x91\x1bl\x93\x00\xfe\xfe\xfe@\x00\x00\x00'
+###[ 802.11 Information Element ]###
+                                                              ID= 63
+                                                              len= 242
+                                                              info= 'o\xe3'
+>>> a[0].info="junma"
+
+
+
+
+Broadcast probe request :
+Login scapy 
+veriwave@veriwave-Latitude-E5520:~$ sudo scapy 
+[sudo] password for veriwave: 
+WARNING: No route found for IPv6 destination :: (no default route?)
+Welcome to Scapy (2.2.0)
+bc_probreq = RadioTap()/Dot11(addr1="ff:ff:ff:ff:ff:ff", addr2="12:34:56:78:90:ab", addr3="ff:ff:ff:ff:ff:ff")/Dot11ProbeReq()/Dot11Elt(ID="SSID", info="")
+>>>ans,unans = srp(bc_probreq, iface="wlan0", timeout=2, multi=1)
+Begin emission:
+Finished to send 1 packets.
+....*.***....**................................................................................................................................
+Received 143 packets, got 6 answers, remaining 0 packets
+>>> ans.nsummary()
+0000 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L 00:19:77:00:00:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='testcai' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0001 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L 00:19:77:00:00:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='testcai' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0002 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L 00:19:77:00:00:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='testcai' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0003 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L 00:19:77:00:00:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='testcai' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0004 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L 00:19:77:00:00:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='testcai' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0005 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L 00:19:77:00:00:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='testcai' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+>>>
+>>> 
+>>> ans,unans = srp(bc_probreq, iface="wlan0", timeout=2, multi=1)
+Begin emission:
+Finished to send 1 packets.
+..*.*************..........................................................
+Received 75 packets, got 14 answers, remaining 0 packets
+>>> 
+>>> 
+>>> ans.nsummary()
+0000 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L 00:19:77:00:00:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='testcai' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0001 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid1_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0002 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L 00:19:77:00:00:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='testcai' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0003 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L 00:19:77:00:00:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='testcai' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0004 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid1_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0005 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid1_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0006 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid1_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0007 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:15 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid2_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0008 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:15 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid2_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0009 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L 00:19:77:00:00:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='testcai' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0010 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L 00:19:77:00:00:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='testcai' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0011 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:15 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid2_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0012 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L 00:19:77:00:00:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='testcai' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0013 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > ff:ff:ff:ff:ff:ff / Dot11ProbeReq / SSID='' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:15 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid2_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+>>>
+Send unicast probe request
+AP config:
+AH-012800#show interface 
+State=Operational state; Chan=Channel;
+Radio=Radio profile; U=up; D=down;
+
+Name           MAC addr      Mode   State Chan(Width) VLAN   Radio      Hive       SSID    
+----------- -------------- -------- ----- ----------- ---- ---------- ---------- ---------
+Mgt0        c413:e201:2800    -       U     -            1     -        hive0        -     
+Agg0        c413:e201:2803 backhaul   D     -            1     -        hive0        -     
+Eth0        c413:e201:2800 backhaul   U     -            1     -        hive0        -     
+Eth1        c413:e201:2801 backhaul   D     -            1     -        hive0        -     
+Red0        c413:e201:2802 backhaul   D     -            1     -        hive0        -     
+Wifi0       c413:e201:2810 access     U     6(20MHz)     -  radio_ng0     -          -     
+Wifi0.1     c413:e201:2814 access     U     6(20MHz)     -  radio_ng0   hive0    junma_s...
+Wifi0.2     c413:e201:2815 access     U     6(20MHz)     -  radio_ng0   hive0    junma_s...
+Wifi1       c413:e201:2820 dual       U    36(80MHz)     -  radio_ac0     -          -     
+Wifi1.1     c413:e201:2820 backhaul   U    36(80MHz)     1  radio_ac0   hive0        -     
+Wifi1.2     c413:e201:2824 access     U    36(80MHz)     -  radio_ac0   hive0    junma_s...
+Wifi1.3     c413:e201:2825 access     U    36(80MHz)     -  radio_ac0   hive0    junma_s...
+AH-012800#show run
+AH-012800#show running-config 
+ssid junma_ssid1_4853
+ssid junma_ssid2_4853
+ssid junma_ssid3_4853
+ssid junma_ssid4_4853
+ssid junma_ssid1_1426
+ssid junma_ssid1_1426 ignore-broadcast-probe
+ssid junma_ssid2_1426
+ssid junma_ssid3_1426
+ssid junma_ssid4_1426
+ssid junma_ssid4_1426 ignore-broadcast-probe
+interface wifi0 radio channel 6
+interface wifi1 radio channel 36
+interface wifi0 ssid junma_ssid1_1426
+interface wifi0 ssid junma_ssid2_1426
+interface wifi1 ssid junma_ssid3_1426
+interface wifi1 ssid junma_ssid4_1426
+no system led power-saving-mode 
+lldp 
+capwap client HTTP proxy name 10.155.61.210 port 80
+
+bc_probreq = RadioTap()/Dot11(addr1="c4:13:e2:01:28:14", addr2="12:34:56:78:90:ab", addr3="c4:13:e2:01:28:14")/Dot11ProbeReq()/Dot11Elt(ID="SSID", info="junma_ssid1_1426")                      ans,unans = srp(bc_probreq, iface="wlan0", timeout=2, multi=1)
+Begin emission:
+Finished to send 1 packets.
+..****.****..........................................................
+Received 69 packets, got 8 answers, remaining 0 packets
+>>> 
+>>> 
+>>> bc_probreq = RadioTap()/Dot11(addr1="c4:13:e2:01:28:14", addr2="12:34:56:78:90:ab", addr3="c4:13:e2:01:28:14")/Dot11ProbeReq()/Dot11Elt(ID="SSID", info="junma_ssid1_1426")                      ff:ff:ff:ff:ff:ff", addr2="12:34:56:78:90:ab", addr3="ff:ff:ff:ff:ff:ff")/Dot11ProbeReq()/Dot11Elt(ID="SSID", info="") ans.nsummary()
+0000 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > c4:13:e2:01:28:14 / Dot11ProbeReq / SSID='junma_ssid1_1426' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid1_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0001 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > c4:13:e2:01:28:14 / Dot11ProbeReq / SSID='junma_ssid1_1426' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid1_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0002 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > c4:13:e2:01:28:14 / Dot11ProbeReq / SSID='junma_ssid1_1426' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid1_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0003 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > c4:13:e2:01:28:14 / Dot11ProbeReq / SSID='junma_ssid1_1426' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid1_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0004 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > c4:13:e2:01:28:14 / Dot11ProbeReq / SSID='junma_ssid1_1426' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid1_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0005 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > c4:13:e2:01:28:14 / Dot11ProbeReq / SSID='junma_ssid1_1426' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid1_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0006 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > c4:13:e2:01:28:14 / Dot11ProbeReq / SSID='junma_ssid1_1426' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid1_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+0007 RadioTap / 802.11 Management 4 12:34:56:78:90:ab > c4:13:e2:01:28:14 / Dot11ProbeReq / SSID='junma_ssid1_1426' ==> RadioTap / 802.11 Management 5L c4:13:e2:01:28:14 > 12:34:56:78:90:ab / Dot11ProbeResp / SSID='junma_ssid1_1426' / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt / Dot11Elt
+>>> bc_probreq = RadioTap()/Dot11(addr1="c4:13:e2:01:28:14", addr2="12:34:56:78:90:ab", addr3="c4:13:e2:01:28:14")/Dot11ProbeReq()/Dot11Elt(ID="SSID", info="junma_ssid2(ID="SSID", info="junma_ssid1_1426")
+
+Send Deauth packet:
+RadioTap()/Dot11(addr1="10:a5:d0:e8:8f:f2", addr2="b8:7c:f2:00:52:15", addr3="10:a5:d0:e8:8f:f2")/Dot11Deauth(reason=12)
+>>> RadioTap()/Dot11(addr1="10:a5:d0:e8:8f:f2", addr2="b8:7c:f2:00:52:15", addr3="10:a5:d0:e8:8f:f2")/Dot11Deauth(reason=12)
+<RadioTap  |<Dot11  subtype=12 type=Management addr1=10:a5:d0:e8:8f:f2 addr2=b8:7c:f2:00:52:15 addr3=10:a5:d0:e8:8f:f2 |<Dot11Deauth  reason=12 |>>>
+>>> deauth = RadioTap()/Dot11(addr1="10:a5:d0:e8:8f:f2", addr2="b8:7c:f2:00:52:15", addr3="10:a5:d0:e8:8f:f2")/Dot11Deauth(reason=12)
+>>> 
+>>> 
+>>> ans. unans = srp
+srp       srp1      srpflood  srploop   
+>>> ans. unans = srp(deauth, iface = "wlan0", timeout= 2, multi = 2)
+Begin emission:
+Finished to send 1 packets.
+...........................................................................................................................................................................................................................
+Received 219 packets, got 0 answers, remaining 1 packets
+>>> ans. unans = srp(deauth, iface = "wlan0", timeout= 2, multi = 2)
+Begin emission:
+Finished to send 1 packets.
+........................................................................................................................................................................................................
+Received 200 packets, got 0 answers, remaining 1 packets
+>>>
+
+AH-005200#show logging buffered 
+2016-07-28 11:24:34 info    ah_cli: admin:<show logging buffered >
+2016-07-28 11:24:34 info    capwap: SSL:unknown version (0)
+2016-07-28 11:24:34 info    capwap: SSL:unknown version (0)
+2016-07-28 11:24:33 info    capwap: CAPWAP: receive capwap query location track response event!, length:109
+2016-07-28 11:24:33 info    capwap: receive event capwap query location track response: eventid = 170: length = 109
+2016-07-28 11:24:32 info    kernel: [wifi]: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:32 info    kernel: [wifi]: wl0.0: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:29 debug   ah_auth: [auth_error]: ah_auth_roaming_receive: don't support type 14
+2016-07-28 11:24:27 info    kernel: [wifi]: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:27 info    kernel: [wifi]: wl1.0: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:26 debug   ah_auth: [auth_error]: ah_auth_roaming_receive: don't support type 14
+2016-07-28 11:24:22 info    kernel: [wifi]: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:22 info    kernel: [wifi]: wl1.0: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:17 info    kernel: [wifi]: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:17 info    kernel: [wifi]: wl1.0: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:16 debug   ah_auth: [auth_error]: ah_auth_roaming_receive: don't support type 14
+2016-07-28 11:24:12 info    kernel: [wifi]: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:12 info    kernel: [wifi]: wl1.0: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:07 info    kernel: [wifi]: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:07 info    kernel: [wifi]: wl1.0: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:06 debug   ah_auth: [auth_error]: ah_auth_roaming_receive: don't support type 14
+2016-07-28 11:24:03 info    capwap: SSL:unknown version (0)
+AH-005200#show logging buffered 
+2016-07-28 11:24:42 info    ah_cli: admin:<show logging buffered >
+2016-07-28 11:24:42 info    kernel: [wifi]: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:42 info    kernel: [wifi]: wl1.0: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:42 info    kernel: [wifi]: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:42 info    kernel: [wifi]: wl0.0: SCAN: WLC_SCAN custom scan
+2016-07-28 11:24:42 info    capwap: SSL:unknown version (0)
+2016-07-28 11:24:42 info    capwap: SSL:unknown version (0)
+2016-07-28 11:24:40 info    kernel: [wifi]: wl0: wlc_recvfilter: scb is null, dont resend deauth
+2016-07-28 11:24:40 info    kernel: [wifi]: wl0: wlc_recvfilter: invalid class 2 frame from unknown station 10:a5:d0:e8:8f:f2
+2016-07-28 11:24:40 info    ah_auth: sta 10a5:d0e8:8ff2 is disassociated from b87c:f200:5214(wifi0.1) in driver
+2016-07-28 11:24:40 info    ah_auth: [Auth]: receive driver notification[0x5, WLC_E_DEAUTH] for Sta[10a5:d0e8:8ff2] at Hapd[b87c:f200:5214, wifi0.1]
+2016-07-28 11:24:40 info    kernel: [wifi]: wl0: wlc_recvfilter: invalid class 2 frame from unknown station 10:a5:d0:e8:8f:f2
+2016-07-28 11:24:40 info    kernel: [wifi]: wl0: wlc_scb_set_auth: 10:a5:d0:e8:8f:f2 deauthorized
+2016-07-28 11:24:40 info    kernel: [wifi]: wl0: wlc_scb_set_auth: send deauth to sta 10:a5:d0:e8:8f:f2
+2016-07-28 11:24:40 info    kernel: [wifi]: wl0.1 wlc_ap_authresp: 10:a5:d0:e8:8f:f2 authenticated
+2016-07-28 11:24:40 info    ah_auth: sta 10a5:d0e8:8ff2 is disassociated from b87c:f200:5215(wifi0.2) in driver
+2016-07-28 11:24:40 info    ah_auth: [Auth]: receive driver notification[0x5, WLC_E_DEAUTH] for Sta[10a5:d0e8:8ff2] at Hapd[b87c:f200:5215, wifi0.2]
+2016-07-28 11:24:40 notice  ah_auth: Station 10a5:d0e8:8ff2 is de-authenticated from b87c:f200:5215 thru SSID client_Sum vid 1
+2016-07-28 11:24:40 info    ah_auth: station_new_status_trap_force: ah_dcd_get_radio_one_sta(10a5:d0e8:8ff2) failed
+2016-07-28 11:24:40 debug   ah_auth: [auth_basic]: Got vlan ID 1 by User Profile ID 1 for station 10a5:d0e8:8ff2
+2016-07-28 11:24:40 info    ah_auth: ah_rt_sta_del: 10a5:d0e8:8ff2
+2016-07-28 11:24:40 debug   ah_auth: [auth_basic]: event is sent to AMRP: event=leave SPA=10a5:d0e8:8ff2 AA=b87c:f200:5215
+AH-005200#show st
+AH-005200#show station 
+Chan=channel number; Pow=Power in dBm;
+A-Mode=Authentication mode; Cipher=Encryption mode;
+A-Time=Associated time; Auth=Authenticated;
+UPID=User profile Identifier; Phymode=Physical mode;
+
+Ifname=wifi0.1, Ifindex=19, SSID=client_HTC:
+Mac Addr       IP Addr         Chan Tx Rate Rx Rate Pow(SNR)         A-Mode   Cipher  A-Time  VLAN Auth UPID Phymode LDPC Tx-STBC Rx-STBC    SM-PS Chan-width   MU-MIMO Release Station-State            
+-------------- --------------- ---- ------- ------- -------- -------------- -------- -------- ---- ---- ---- ------- ---- ------- ------- -------- ---------- --------- ------- -------------
+
+Ifname=wifi1.1, Ifindex=25, SSID=client_HTC:
+Mac Addr       IP Addr         Chan Tx Rate Rx Rate Pow(SNR)         A-Mode   Cipher  A-Time  VLAN Auth UPID Phymode LDPC Tx-STBC Rx-STBC    SM-PS Chan-width   MU-MIMO Release Station-State            
+-------------- --------------- ---- ------- ------- -------- -------------- -------- -------- ---- ---- ---- ------- ---- ------- ------- -------- ---------- --------- ------- -------------
+
+Ifname=wifi1.3, Ifindex=27, SSID=client_ipad:
+Mac Addr       IP Addr         Chan Tx Rate Rx Rate Pow(SNR)         A-Mode   Cipher  A-Time  VLAN Auth UPID Phymode LDPC Tx-STBC Rx-STBC    SM-PS Chan-width   MU-MIMO Release Station-State            
+-------------- --------------- ---- ------- ------- -------- -------------- -------- -------- ---- ---- ---- ------- ---- ------- ------- -------- ---------- --------- ------- -------------
+          
+Ifname=wifi1.5, Ifindex=29, SSID=client_windows:
+Mac Addr       IP Addr         Chan Tx Rate Rx Rate Pow(SNR)         A-Mode   Cipher  A-Time  VLAN Auth UPID Phymode LDPC Tx-STBC Rx-STBC    SM-PS Chan-width   MU-MIMO Release Station-State            
+-------------- --------------- ---- ------- ------- -------- -------------- -------- -------- ---- ---- ---- ------- ---- ------- ------- -------- ---------- --------- ------- -------------
+a8a7:9579:1d27 10.155.35.84     149     78M   86.5M  -54(41)       wpa2-psk aes ccmp 44:16:38    1  Yes    2    11ac  Yes    No     Yes     static    20MHz   Candidate      No Good                     
+a8a7:9579:181b 10.155.35.80     149     78M   86.5M  -57(38)       wpa2-psk aes ccmp 44:18:12    1  Yes    2    11ac  Yes    No     Yes     static    20MHz   Candidate      No Good                     
+
+Ifname=wifi0.2, Ifindex=34, SSID=client_Sum:
+Mac Addr       IP Addr         Chan Tx Rate Rx Rate Pow(SNR)         A-Mode   Cipher  A-Time  VLAN Auth UPID Phymode LDPC Tx-STBC Rx-STBC    SM-PS Chan-width   MU-MIMO Release Station-State            
+-------------- --------------- ---- ------- ------- -------- -------------- -------- -------- ---- ---- ---- ------- ---- ------- ------- -------- ---------- --------- ------- -------------
+10a5:d0e8:8ff2 10.155.35.85       6    130M    130M  -52(43)       wpa2-psk aes ccmp 00:00:09    1  Yes    1    11ng  Yes    No      No     static    20MHz          No      No Good                     
+
+Ifname=wifi0.3, Ifindex=35, SSID=client_ipad:
+Mac Addr       IP Addr         Chan Tx Rate Rx Rate Pow(SNR)         A-Mode   Cipher  A-Time  VLAN Auth UPID Phymode LDPC Tx-STBC Rx-STBC    SM-PS Chan-width   MU-MIMO Release Station-State            
+-------------- --------------- ---- ------- ------- -------- -------------- -------- -------- ---- ---- ---- ------- ---- ------- ------- -------- ---------- --------- ------- -------------
+
+Ifname=wifi0.5, Ifindex=37, SSID=client_windows:
+Mac Addr       IP Addr         Chan Tx Rate Rx Rate Pow(SNR)         A-Mode   Cipher  A-Time  VLAN Auth UPID Phymode LDPC Tx-STBC Rx-STBC    SM-PS Chan-width   MU-MIMO Release Station-State            
+-------------- --------------- ---- ------- ------- -------- -------------- -------- -------- ---- ---- ---- ------- ---- ------- ------- -------- ---------- --------- ------- -------------
+
+AH-005200#show logging buffered 
+2016-07-28 11:25:52 info    ah_cli: admin:<show logging buffered >
+2016-07-28 11:25:51 info    ah_auth: Station 10a5:d0e8:8ff2 ip 10.155.35.85 username n/a hostname android-77b8d98b86b876c7 OS Android, flag = DHCP
+2016-07-28 11:25:51 notice  ah_auth: Station 10a5:d0e8:8ff2 is authenticated to b87c:f200:5215 thru SSID client_Sum vid 1
+2016-07-28 11:25:51 debug   ah_auth: [auth_basic]: Got vlan ID 1 by User Profile ID 1 for station 10a5:d0e8:8ff2
+2016-07-28 11:25:51 debug   kernel: [auth]: set cwp entry to flag DHCP ACK pending
+2016-07-28 11:25:51 info    ah_auth: detect station(10a5:d0e8:8ff2) os(Android) via DHCP fingerprint
+2016-07-28 11:25:51 info    kernel: [qos]: add qos user 10a5:d0e8:8ff2 idx 143 uppid 2
+2016-07-28 11:25:51 info    amrp2: set proxy route: 10a5:d0e8:8ff2 -> b87c:f200:5200 ifp wifi0.2 upid 1 flag 0x1c03 monitor(0/0) pkt/sec ok
+2016-07-28 11:25:51 info    kernel: [mesh]: set proxy : 10a5:d0e8:8ff2 b87c:f200:5200 wifi0.2 flag 0x1c03
+2016-07-28 11:25:51 info    amrp2: receive event <STA join>: 10a5:d0e8:8ff2 (ip 10.155.35.85) associate wifi0.2 upid 1 vlan 1 flag 0x00000000
+2016-07-28 11:25:51 debug   ah_auth: [auth_basic]: event is sent to AMRP: event=join SPA=10a5:d0e8:8ff2 AA=b87c:f200:5215 if=34 uid=1 vlan=1 flag=0:hit
+2016-07-28 11:25:51 info    kernel: [wifi]: wl0: wlc_scb_set_auth: 10:a5:d0:e8:8f:f2 authorized
+2016-07-28 11:25:51 info    ah_auth: add new RT sta: MAC=10a5:d0e8:8ff2, IP=10.155.35.85, hostname=android-77b8d98b86b876c7, username= on wifi0.2
+2016-07-28 11:25:51 info    ah_auth: [Auth]STA(10a5:d0e8:8ff2) login to SSID(wifi0.2) by user_name=
+2016-07-28 11:25:51 debug   ah_auth: [auth_basic]: Got vlan ID 1 by User Profile ID 1 for station 10a5:d0e8:8ff2
+2016-07-28 11:25:51 debug   ah_auth: [auth_basic]: Got vlan ID 1 by User Profile ID 1 for station 10a5:d0e8:8ff2
+2016-07-28 11:25:51 debug   ah_auth: [auth_basic]: try default PMK for STA(10a5:d0e8:8ff2)
+2016-07-28 11:25:51 info    kernel: [wifi]: wl0: AC_VO txop exceeded phylen 137/2346 dur 1602/1504
+2016-07-28 11:25:51 info    kernel: [wifi]: wl0: wlc_scb_set_auth: 10:a5:d0:e8:8f:f2 deauthorized
+2016-07-28 11:25:51 info    kernel: [wifi]: wl0.1 10:a5:d0:e8:8f:f2 associated
+2016-07-28 11:25:51 info    kernel: [wifi]: MBSS on 
+2016-07-28 11:25:51 info    ah_auth: [Auth]: receive driver notification[0x8, WLC_E_ASSOC_IND] for Sta[10a5:d0e8:8ff2] at Hapd[b87c:f200:5215, wifi0.2]
+AH-005200#show station          
+Chan=channel number; Pow=Power in dBm;
+A-Mode=Authentication mode; Cipher=Encryption mode;
+A-Time=Associated time; Auth=Authenticated;
+UPID=User profile Identifier; Phymode=Physical mode;
+
+Ifname=wifi0.1, Ifindex=19, SSID=client_HTC:
+Mac Addr       IP Addr         Chan Tx Rate Rx Rate Pow(SNR)         A-Mode   Cipher  A-Time  VLAN Auth UPID Phymode LDPC Tx-STBC Rx-STBC    SM-PS Chan-width   MU-MIMO Release Station-State            
+-------------- --------------- ---- ------- ------- -------- -------------- -------- -------- ---- ---- ---- ------- ---- ------- ------- -------- ---------- --------- ------- -------------
+
+Ifname=wifi1.1, Ifindex=25, SSID=client_HTC:
+Mac Addr       IP Addr         Chan Tx Rate Rx Rate Pow(SNR)         A-Mode   Cipher  A-Time  VLAN Auth UPID Phymode LDPC Tx-STBC Rx-STBC    SM-PS Chan-width   MU-MIMO Release Station-State            
+-------------- --------------- ---- ------- ------- -------- -------------- -------- -------- ---- ---- ---- ------- ---- ------- ------- -------- ---------- --------- ------- -------------
+
+Ifname=wifi1.3, Ifindex=27, SSID=client_ipad:
+Mac Addr       IP Addr         Chan Tx Rate Rx Rate Pow(SNR)         A-Mode   Cipher  A-Time  VLAN Auth UPID Phymode LDPC Tx-STBC Rx-STBC    SM-PS Chan-width   MU-MIMO Release Station-State            
+-------------- --------------- ---- ------- ------- -------- -------------- -------- -------- ---- ---- ---- ------- ---- ------- ------- -------- ---------- --------- ------- -------------
+          
+Ifname=wifi1.5, Ifindex=29, SSID=client_windows:
+Mac Addr       IP Addr         Chan Tx Rate Rx Rate Pow(SNR)         A-Mode   Cipher  A-Time  VLAN Auth UPID Phymode LDPC Tx-STBC Rx-STBC    SM-PS Chan-width   MU-MIMO Release Station-State            
+-------------- --------------- ---- ------- ------- -------- -------------- -------- -------- ---- ---- ---- ------- ---- ------- ------- -------- ---------- --------- ------- -------------
+a8a7:9579:1d27 10.155.35.84     149     78M   86.5M  -55(40)       wpa2-psk aes ccmp 44:17:52    1  Yes    2    11ac  Yes    No     Yes     static    20MHz   Candidate      No Good                     
+a8a7:9579:181b 10.155.35.80     149     78M   86.5M  -59(36)       wpa2-psk aes ccmp 44:19:26    1  Yes    2    11ac  Yes    No     Yes     static    20MHz   Candidate      No Good                     
+
+Ifname=wifi0.2, Ifindex=34, SSID=client_Sum:
+Mac Addr       IP Addr         Chan Tx Rate Rx Rate Pow(SNR)         A-Mode   Cipher  A-Time  VLAN Auth UPID Phymode LDPC Tx-STBC Rx-STBC    SM-PS Chan-width   MU-MIMO Release Station-State            
+-------------- --------------- ---- ------- ------- -------- -------------- -------- -------- ---- ---- ---- ------- ---- ------- ------- -------- ---------- --------- ------- -------------
+10a5:d0e8:8ff2 10.155.35.85       6    130M     24M  -40(55)       wpa2-psk aes ccmp 00:00:14    1  Yes    1    11ng  Yes    No      No     static    20MHz          No      No data collecting...       
+
+Ifname=wifi0.3, Ifindex=35, SSID=client_ipad:
+Mac Addr       IP Addr         Chan Tx Rate Rx Rate Pow(SNR)         A-Mode   Cipher  A-Time  VLAN Auth UPID Phymode LDPC Tx-STBC Rx-STBC    SM-PS Chan-width   MU-MIMO Release Station-State            
+AH-005200#
+How to check the packet data you struct 
+Deauth = RadioTap()/Dot11(addr1="10:a5:d0:e8:8f:f2", addr2="b8:7c:f2:00:52:15", addr3="10:a5:d0:e8:8f:f2")/Dot11Deauth(reason=2)
+>>> ls(deauth)
+version    : ByteField            = 0               (0)
+pad        : ByteField            = 0               (0)
+len        : FieldLenField        = None            (None)
+present    : FlagsField           = None            (None)
+notdecoded : StrLenField          = ''              ('')
+--
+subtype    : BitField             = 12              (0)
+type       : BitEnumField         = 0               (0)
+proto      : BitField             = 0               (0)
+FCfield    : FlagsField           = 0               (0)
+ID         : ShortField           = 0               (0)
+addr1      : MACField             = '10:a5:d0:e8:8f:f2' ('00:00:00:00:00:00')
+addr2      : Dot11Addr2MACField   = 'b8:7c:f2:00:52:15' ('00:00:00:00:00:00')
+addr3      : Dot11Addr3MACField   = '10:a5:d0:e8:8f:f2' ('00:00:00:00:00:00')
+SC         : Dot11SCField         = 0               (0)
+addr4      : Dot11Addr4MACField   = '00:00:00:00:00:00' ('00:00:00:00:00:00')
+--
+reason     : LEShortEnumField     = 2               (1)
+>>>
+
+How to struct a self-define packet:
+>>> import_hexcap()
+0000   00 00 2b 00 6f 08 00 c0 01 00 00 00 00 00 00 00
+0010   a1 bc df 11 00 00 00 00 10 02 85 09 80 04 c9 a7
+0020   00 00 00 10 18 00 03 00 02 00 00 00 00 3a 01 b8
+0030   7c f2 00 52 19 12 34 56 78 90 ab b8 7c f2 00 52
+0040   19 20 0d 21 05 0a 00 00 05 6a 75 6e 6d 61 01 08
+0050   82 84 8b 96 24 30 48 6c 32 04 0c 12 18 60 21 02
+0060   08 19 24 02 01 0d 2d 1a ad 49 17 ff ff ff 00 00
+0070   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0080   00 00 7f 01 04 dd 1e 00 90 4c 33 ad 49 17 ff ff
+0090   ff 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00a0   00 00 00 00 00 dd 07 00 50 f2 02 00 01 00 a0 c0
+00b0   94 56
+'\x00\x00+\x00o\x08\x00\xc0\x01\x00\x00\x00\x00\x00\x00\x00\xa1\xbc\xdf\x11\x00\x00\x00\x00\x10\x02\x85\t\x80\x04\xc9\xa7\x00\x00\x00\x10\x18\x00\x03\x00\x02\x00\x00\x00\x00:\x01\xb8|\xf2\x00R\x19\x124Vx\x90\xab\xb8|\xf2\x00R\x19 \r!\x05\n\x00\x00\x05junma\x01\x08\x82\x84\x8b\x96$0Hl2\x04\x0c\x12\x18`!\x02\x08\x19$\x02\x01\r-\x1a\xadI\x17\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x7f\x01\x04\xdd\x1e\x00\x90L3\xadI\x17\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xdd\x07\x00P\xf2\x02\x00\x01\x00\xa0\xc0\x94V'
+>>> Ether(a)
+<Dot3  dst=00:00:2b:00:6f:08 src=00:c0:01:00:00:00 len=0 |<Padding  load='\x00\x00\xa1\xbc\xdf\x11\x00\x00\x00\x00\x10\x02\x85\t\x80\x04\xc9\xa7\x00\x00\x00\x10\x18\x00\x03\x00\x02\x00\x00\x00\x00:\x01\xb8|\xf2\x00R\x19\x124Vx\x90\xab\xb8|\xf2\x00R\x19 \r!\x05\n\x00\x00\x05junma\x01\x08\x82\x84\x8b\x96$0Hl2\x04\x0c\x12\x18`!\x02\x08\x19$\x02\x01\r-\x1a\xadI\x17\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x7f\x01\x04\xdd\x1e\x00\x90L3\xadI\x17\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xdd\x07\x00P\xf2\x02\x00\x01\x00\xa0\xc0\x94V' |>>
+>>> Dot11(a)
+<Dot11  subtype=0L type=Management proto=0L FCfield= ID=11008 addr1=6f:08:00:c0:01:00 addr2=00:00:00:00:00:00 addr3=a1:bc:df:11:00:00 SC=0 addr4=None |<Dot11AssoReq  cap=res9+privacy listen_interval=2437 |<Dot11Elt  ID=128 len=4 info='\xc9\xa7\x00\x00' |<Dot11Elt  ID=SSID len=16 info='\x18\x00\x03\x00\x02\x00\x00\x00\x00:\x01\xb8|\xf2\x00R' |<Dot11Elt  ID=25 len=18 info='4Vx\x90\xab\xb8|\xf2\x00R\x19 \r!\x05\n\x00\x00' |<Dot11Elt  ID=TIM len=106 info='unma\x01\x08\x82\x84\x8b\x96$0Hl2\x04\x0c\x12\x18`!\x02\x08\x19$\x02\x01\r-\x1a\xadI\x17\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x7f\x01\x04\xdd\x1e\x00\x90L3\xadI\x17\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xdd\x07\x00P\xf2\x02\x00\x01\x00\xa0\xc0\x94V' |>>>>>>
+>>> Radi
+RadioTap  Radius    
+>>> RadioTap(a)
+<RadioTap  version=0 pad=0 len=43 present=TSFT+Flags+Rate+Channel+dBm_AntSignal+dBm_AntNoise+Antenna+b30+Ext notdecoded='\x01\x00\x00\x00\x00\x00\x00\x00\xa1\xbc\xdf\x11\x00\x00\x00\x00\x10\x02\x85\t\x80\x04\xc9\xa7\x00\x00\x00\x10\x18\x00\x03\x00\x02\x00\x00' |<Dot11  subtype=0L type=Management proto=0L FCfield= ID=14849 addr1=b8:7c:f2:00:52:19 addr2=12:34:56:78:90:ab addr3=b8:7c:f2:00:52:19 SC=3360 addr4=None |<Dot11AssoReq  cap=res8+short-slot+ESS+short-preamble listen_interval=10 |<Dot11Elt  ID=SSID len=5 info='junma' |<Dot11Elt  ID=Rates len=8 info='\x82\x84\x8b\x96$0Hl' |<Dot11Elt  ID=ESRates len=4 info='\x0c\x12\x18`' |<Dot11Elt  ID=33 len=2 info='\x08\x19' |<Dot11Elt  ID=36 len=2 info='\x01\r' |<Dot11Elt  ID=45 len=26 info='\xadI\x17\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' |<Dot11Elt  ID=127 len=1 info='\x04' |<Dot11Elt  ID=vendor len=30 info='\x00\x90L3\xadI\x17\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00' |<Dot11Elt  ID=vendor len=7 info='\x00P\xf2\x02\x00\x01\x00' |<Dot11Elt  ID=160 len=192 info='\x94V' |>>>>>>>>>>>>>
+>>> b = _
+>>> b.show()
+###[ RadioTap dummy ]###
+  version= 0
+  pad= 0
+  len= 43
+  present= TSFT+Flags+Rate+Channel+dBm_AntSignal+dBm_AntNoise+Antenna+b30+Ext
+  notdecoded= '\x01\x00\x00\x00\x00\x00\x00\x00\xa1\xbc\xdf\x11\x00\x00\x00\x00\x10\x02\x85\t\x80\x04\xc9\xa7\x00\x00\x00\x10\x18\x00\x03\x00\x02\x00\x00'
+###[ 802.11 ]###
+     subtype= 0L
+     type= Management
+     proto= 0L
+     FCfield= 
+     ID= 14849
+     addr1= b8:7c:f2:00:52:19
+     addr2= 12:34:56:78:90:ab
+     addr3= b8:7c:f2:00:52:19
+     SC= 3360
+     addr4= None
+###[ 802.11 Association Request ]###
+        cap= res8+short-slot+ESS+short-preamble
+        listen_interval= 10
+###[ 802.11 Information Element ]###
+           ID= SSID
+           len= 5
+           info= 'junma'
+###[ 802.11 Information Element ]###
+              ID= Rates
+              len= 8
+              info= '\x82\x84\x8b\x96$0Hl'
+###[ 802.11 Information Element ]###
+                 ID= ESRates
+                 len= 4
+                 info= '\x0c\x12\x18`'
+###[ 802.11 Information Element ]###
+                    ID= 33
+                    len= 2
+                    info= '\x08\x19'
+###[ 802.11 Information Element ]###
+                       ID= 36
+                       len= 2
+                       info= '\x01\r'
+###[ 802.11 Information Element ]###
+                          ID= 45
+                          len= 26
+                          info= '\xadI\x17\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+###[ 802.11 Information Element ]###
+                             ID= 127
+                             len= 1
+                             info= '\x04'
+###[ 802.11 Information Element ]###
+                                ID= vendor
+                                len= 30
+                                info= '\x00\x90L3\xadI\x17\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+###[ 802.11 Information Element ]###
+                                   ID= vendor
+                                   len= 7
+                                   info= '\x00P\xf2\x02\x00\x01\x00'
+###[ 802.11 Information Element ]###
+                                      ID= 160
+                                      len= 192
+                                      info= '\x94V'
+
+
+How to simulate a client to open ssid of an AP:
+1.	Send auth req
+a)	>>> authentication = RadioTap()/Dot11(addr1="c4:13:e2:01:77:54", addr2="12:34:56:78:90:ab", addr3="c4:13:e2:01:77:54")/Dot11Auth(algo=0,seqnum=1)
+>>> ans,unans = srp(authentication,iface="wlan0",timeout=0.01,multi=1)
+Begin emission:
+Finished to send 1 packets.
+...****
+Received 7 packets, got 4 answers, remaining 0 packets
+
+2.	Send assoc req
+a = RadioTap(import_hexcap())
+0000   00 00 2b 00 6f 08 00 c0 01 00 00 00 00 59 01 24
+0010   b5 eb 97 5b 00 00 00 00 10 02 85 09 80 04 eb a7
+0020   00 00 00 10 18 00 03 00 02 00 00 00 00 3a 01 c4
+0030   13 e2 01 77 54 12 34 56 78 90 ab c4 13 e2 01 77
+0040   54 e0 fe 21 05 0a 00 00 05 6a 75 6e 6d 61 01 08
+0050   82 84 8b 96 24 30 48 6c 32 04 0c 12 18 60 21 02
+0060   08 19 24 02 01 0d 2d 1a ad 49 17 ff ff ff 00 00
+0070   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0080   00 00 7f 08 04 00 00 00 00 00 00 40 dd 1e 00 90
+0090   4c 33 ad 49 17 ff ff ff 00 00 00 00 00 00 00 00
+00a0   00 00 00 00 00 00 00 00 00 00 00 00 dd 07 00 50
+00b0   f2 02 00 01 00
+>>> 
+>>> ans,unans = srp(a,iface="wlan0",timeout=0.01,multi=1)
+Begin emission:
+Finished to send 1 packets.
+.*****
+Received 6 packets, got 5 answers, remaining 0 packets
+3.	check 
+AH-017740#show station 
+Chan=channel number; Pow=Power in dBm;
+A-Mode=Authentication mode; Cipher=Encryption mode;
+A-Time=Associated time; Auth=Authenticated;
+UPID=User profile Identifier; Phymode=Physical mode;
+
+Ifname=wifi0.1, Ifindex=16, SSID=junma:
+Mac Addr       IP Addr         Chan Tx Rate Rx Rate Pow(SNR)         A-Mode   Cipher  A-Time  VLAN Auth UPID Phymode LDPC Tx-STBC Rx-STBC    SM-PS Chan-width   MU-MIMO Release Station-State            
+-------------- --------------- ---- ------- ------- -------- -------------- -------- -------- ---- ---- ---- ------- ---- ------- ------- -------- ---------- --------- ------- -------------
+1234:5678:90ab 0.0.0.0            6    195M      0M  -55(40)           open     none 00:00:09    1  Yes    0    11ng  Yes   Yes     Yes     static    20MHz          No      No data collecting...       
+3436:3bcd:3d66 10.155.35.53       6    195M     24M  -17(78)           open     none 00:04:50    1  Yes    0    11ng  Yes   Yes     Yes     static    20MHz          No      No Good               
+
+Use sniffer to capture the packet you need.
+sniff(iface="wlan0",prn=lambda x:x.sprintf("{Dot11Beacon:%Dot11.addr3%\t%Dot11Beacon.info%\t%PrismHeader.channel%\t%Dot11Beacon.cap%}"),count = 10)
+00:19:77:00:00:14       testcai ??      res8+short-slot+res11+ESS+short-preamble
+00:19:77:00:00:14       testcai ??      res8+short-slot+res11+ESS+short-preamble
+00:19:77:00:00:14       testcai ??      res8+short-slot+res11+ESS+short-preamble
+00:19:77:00:00:14       testcai ??      res8+short-slot+res11+ESS+short-preamble
+00:19:77:00:00:14       testcai ??      res8+short-slot+res11+ESS+short-preamble
+00:19:77:00:00:14       testcai ??      res8+short-slot+res11+ESS+short-preamble
+00:19:77:00:00:14       testcai ??      res8+short-slot+res11+ESS+short-preamble
+00:19:77:00:00:14       testcai ??      res8+short-slot+res11+ESS+short-preamble
+00:19:77:00:00:14       testcai ??      res8+short-slot+res11+ESS+short-preamble
+00:19:77:00:00:14       testcai ??      res8+short-slot+res11+ESS+short-preamble
+<Sniffed: TCP:0 UDP:0 ICMP:0 Other:10>
